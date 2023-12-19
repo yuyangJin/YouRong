@@ -1,6 +1,6 @@
 model: simple
 dataset_name: lvwerra___parquet
-is_peft: True
+is_peft: False
 validation: False
 ac: None
 min_param: 1 # by default using smallest granularity

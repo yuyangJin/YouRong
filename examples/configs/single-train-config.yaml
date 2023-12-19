@@ -1,7 +1,7 @@
-model: facebook_opt_6.7b
-is_peft: True
+model: simple
+is_peft: False
 validation: False
 train:
-  batch_size: 1
-  iter: 3
+  batch_size: 16
+  iter: 10
   seq_len: 1024
