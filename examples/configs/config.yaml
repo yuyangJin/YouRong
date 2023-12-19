@@ -1,0 +1,33 @@
+model: simple
+dataset_name: lvwerra___parquet
+is_peft: True
+validation: False
+ac: None
+min_param: 1 # by default using smallest granularity
+offload_param: False
+with_data: False
+shard_group_size: -1
+dual_model:
+  num_layer: -1
+  batch_size: -1
+  peak_ac: False
+train:
+  batch_size: 1
+  iter: 3
+  seq_len: 1024
+  epoch: 5
+intra_weight:
+  replica_rate: 0
+  replica_strategy: homo
+inter_weight:
+  replica_layer_id: -1
+  skip_comm: False
+time_dim:
+  layer_id: -1
+profile:
+  memory: False
+  compute: False
+group_size: 1
+peak_num_groups: 0
+checkpoint:
+  non_offload_num: 0
