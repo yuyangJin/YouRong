@@ -1,6 +1,6 @@
 import sys
 import os
-proj_dir = '/home/jinyuyang/PACMAN_PROJECT/acdamic/YouRong/YouRong'
+proj_dir = '/home/jinyuyang/PACMAN_PROJECT/RESEARCH/YouRong'
 # proj_dir = os.environ['/home/jinyuyang/PACMAN_PROJECT/acdamic/YouRong/YouRong']
 sys.path.append(proj_dir + r"")
 import time
@@ -11,9 +11,13 @@ from omegaconf import DictConfig
 
 import numpy as np
 
+from peft import LoraConfig, TaskType, get_peft_model
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+from torch.distributed.fsdp.api import ShardingStrategy
 
 import torch.distributed as dist
 import torch.multiprocessing as mp
@@ -56,18 +60,19 @@ def run_train(num_iter, batch_size, seq_len, model, loss_func, optimizer, rank):
         torch.cuda.synchronize(rank)
         dist.barrier()
         t0 = time.time()
-        input_ids = torch.randint(0, 1024, (batch_size, seq_len), device='cuda').to(rank)
+        input_ids = torch.randint(0, 1024, (batch_size, seq_len)).to(rank)
         output = model(
             input_ids,
             labels=input_ids,
             use_cache=False,  # reduce
         )
-        input_ids = input_ids.float()
+        input_ids = input_ids.long()
         loss = loss_func(
             # output_t,
             output.logits.view(-1, output.logits.size(-1)),
             # output.logits.view(-1),
-            input_ids,
+            # input_ids,
+            input_ids.view(-1),
         )
         del output
         torch.cuda.synchronize(rank)
@@ -124,7 +129,7 @@ def run_train(num_iter, batch_size, seq_len, model, loss_func, optimizer, rank):
 
 def setup(rank, world_size):
     os.environ["MASTER_ADDR"] = "127.0.0.1"
-    os.environ["MASTER_PORT"] = "12444"
+    os.environ["MASTER_PORT"] = "25900"
 
     # initialize the process group
     dist.init_process_group("nccl", rank=rank, world_size=world_size)
@@ -191,7 +196,25 @@ def yr_main(rank, world_size, configs, log_queue, log_dir):
         elif "Llama" in model_name:
             model = AutoModelForCausalLM.from_pretrained(
                 model_name, torch_dtype=torch.float16
+            ).to('cuda')
+
+            model = FSDP(model,
+                device_id=rank,
+                sharding_strategy=ShardingStrategy.FULL_SHARD,
             )
+
+
+            # model.to_bettertransformer()
+            peft_config = LoraConfig(
+                task_type=TaskType.CAUSAL_LM,
+                inference_mode=False,
+                r=8,
+                lora_alpha=32,
+                lora_dropout=0.1,
+            )
+            model = get_peft_model(model, peft_config)
+
+
             tokenizer = AutoTokenizer.from_pretrained(model_name)
         else:
             assert False, f"{model_name} not supported"

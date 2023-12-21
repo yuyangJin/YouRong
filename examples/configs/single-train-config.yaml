@@ -1,7 +1,8 @@
-model: simple
+model: /mnt/data/zhongrx/Llama-2-7b-hf
 is_peft: False
 validation: False
+with_data: False
 train:
-  batch_size: 16
+  batch_size: 2
   iter: 10
   seq_len: 1024

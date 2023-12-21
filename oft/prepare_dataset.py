@@ -38,7 +38,7 @@ def prepare_dataset(rank, world_size, tokenizer, args):
         seq_len = 128
 
     # dataset = datasets.load_dataset(args.dataset_name, data_dir="", split="train")
-    dataset = datasets.load_from_disk("/data/huangkz/data/stack-exchange-paired.hf")
+    dataset = datasets.load_from_disk("/home/jinyuyang/data/stack-exchange-paired.hf")
     num = 1000
     dataset = dataset.train_test_split(
         train_size=batch_size * num, test_size=batch_size * num, seed=42 + rank
