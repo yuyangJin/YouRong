@@ -1,6 +1,7 @@
 import torch
 import logging
 from torch.utils.data.distributed import DistributedSampler
+from torch.distributed.elastic.utils.data import ElasticDistributedSampler
 from tqdm import tqdm
 
 
@@ -70,10 +71,16 @@ def prepare_dataset(rank, world_size, tokenizer, args):
         seq_length=seq_len,
         chars_per_token=chars_per_token,
     )
-    train_sampler = DistributedSampler(
+    # train_sampler = DistributedSampler(
+    #     train_dataset, rank=rank, num_replicas=world_size, shuffle=True
+    # )
+    # valid_sampler = DistributedSampler(
+    #     valid_dataset, rank=rank, num_replicas=world_size
+    # )    
+    train_sampler = ElasticDistributedSampler(
         train_dataset, rank=rank, num_replicas=world_size, shuffle=True
     )
-    valid_sampler = DistributedSampler(
+    valid_sampler = ElasticDistributedSampler(
         valid_dataset, rank=rank, num_replicas=world_size
     )
     # train_kwargs = {"batch_size": args.train.batch_size, "sampler": train_sampler}

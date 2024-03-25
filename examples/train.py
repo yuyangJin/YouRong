@@ -1,7 +1,7 @@
 import sys
 import os
-proj_dir = '/home/jinyuyang/PACMAN_PROJECT/RESEARCH/YouRong'
-# proj_dir = os.environ['/home/jinyuyang/PACMAN_PROJECT/acdamic/YouRong/YouRong']
+# proj_dir = '/home/jinyuyang/PACMAN_PROJECT/RESEARCH/YouRong'
+proj_dir = '/home/jinyuyang/PACMAN_PROJECT/acdamic/YouRong/YouRong'
 sys.path.append(proj_dir + r"")
 import time
 from tqdm import tqdm
@@ -164,6 +164,7 @@ def yr_main(rank, world_size, configs, log_queue, log_dir):
         "simple",
         "/mnt/data/zhongrx/Llama-2-13b-hf",
         "/mnt/data/zhongrx/Llama-2-7b-hf",
+        "/home/dataset/llama-2-hf-all/Llama-2-7b-hf",
         "/data/dataset/Llama-2-70b-hf-trans",
     ]
 
@@ -250,7 +251,34 @@ def yr_main(rank, world_size, configs, log_queue, log_dir):
     #     #     if epoch % 10 == 0 and epoch != 0:
     #     #         run_eval(num_iter, batch_size, seq_len, model)
     # else:
+    logging.info("before hook")
+
+    def hook_fn(m, i, o):
+        print(m)
+        print("------------Input Grad------------")
+
+        for grad in i:
+            try:
+                print(grad.shape)
+            except AttributeError: 
+                print ("None found for Gradient")
+
+        print("------------Output Grad------------")
+        for grad in o:  
+            try:
+                print(grad.shape)
+            except AttributeError: 
+                print ("None found for Gradient")
+        print("\n")
+
+
+    # torch.nn.modules.module.register_module_forward_hook(hook)
+    hook = model.register_backward_hook(hook_fn)
+
     run_train(num_iter, batch_size, seq_len, model, loss_func, optimizer, rank)
+
+    hook.remove()
+
 
 @hydra.main(version_base=None, config_path="./configs", config_name="single-train-config")
 def main(config: DictConfig):
