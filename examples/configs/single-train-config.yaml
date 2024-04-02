@@ -1,9 +1,10 @@
 # model: /mnt/data/zhongrx/Llama-2-7b-hf
-model: /home/dataset/llama-2-hf-all/Llama-2-7b-hf
+# model: /home/dataset/llama-2-hf-all/Llama-2-7b-hf
+model: /mnt/octave/mnt/data/zhongrx/Llama-2-7b-hf
 is_peft: False
 validation: False
 with_data: False
 train:
   batch_size: 1
   iter: 10
-  seq_len: 1024
+  seq_len: 256

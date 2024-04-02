@@ -18,7 +18,7 @@ import torch.utils.data
 import torchvision.models
 import torch.distributed as dist
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
-from torch.distributed.fsdp.api import ShardingStrategy
+from torch.distributed.fsdp import ShardingStrategy
 
 import torch.distributed.elastic.multiprocessing as mp
 # import torch.multiprocessing as mp
@@ -155,6 +155,9 @@ def run_train(i, batch_size, seq_len, model, loss_func, optimizer, rank, state):
 
 def procs_main(configs, log_queue, dirname):
 
+    import gc
+    del variable
+    gc.collect()
     # setup(rank, world_size)
     # print("Rank is:", rank, sep=' ')
     rank = int(os.environ["LOCAL_RANK"])
@@ -185,6 +188,7 @@ def procs_main(configs, log_queue, dirname):
         "/mnt/data/zhongrx/Llama-2-7b-hf",
         "/data/dataset/Llama-2-70b-hf-trans",
         "/home/dataset/llama-2-hf-all/Llama-2-7b-hf",
+        "/mnt/octave/mnt/data/zhongrx/Llama-2-7b-hf",
     ]
 
     
